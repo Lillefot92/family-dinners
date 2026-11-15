@@ -196,6 +196,13 @@ main { padding: 28px 20px 80px; }
 .ic { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .need { color: var(--muted); font-weight: 500; font-size: .88rem; }
 
+.picker-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pick-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.pick { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; }
+.pick:hover { border-color: var(--accent); background: var(--accent-soft); }
+.pick-name { font-weight: 600; }
+.pick-meta { color: var(--muted); font-size: .85rem; }
+#picker { scroll-margin-top: 76px; }
 #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: .92rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); z-index: 10; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -255,7 +262,7 @@ const state = {
   recipes: Object.assign({}, LIB), loading: {},
   shop: {}, extras: [], prefs: {}, weeks: [],
   panelOpen: false, wishes: "", extraText: "", houseOpen: false,
-  busy: null, swapping: -1, abort: null
+  busy: null, swapping: -1, abort: null, picker: -1, changedLocally: false
 };
 let unsubShop = null, unsubExtras = null, shopWeek = null, loadTimer = null;
 const pendingShop = new Set();
@@ -330,6 +337,8 @@ function goStatic() {
   const W = window.STATIC_WEEK;
   state.static = true; state.local = true; state.canWrite = false; state.planLoaded = true;
   state.plan = W.plan;
+  const over = lsGet("fd-days-" + W.plan.weekId);
+  if (Array.isArray(over) && over.length === 7) { state.plan = Object.assign({}, W.plan, { days: over }); state.changedLocally = true; }
   const saved = lsGet("fd-settings") || {};
   state.settings = Object.assign({ adults: 2, toddlers: 1, budget: 1300, store: "willys" }, W.settings || {}, saved.store ? { store: saved.store } : {});
   Object.assign(state.recipes, W.recipes || {});
@@ -630,7 +639,9 @@ function viewWeek() {
       ${state.canWrite ? `<div class="actions"><button class="btn primary" data-action="panel">${ICON.spark}Plan a new week</button></div>` : ""}</div>`;
   out += head;
   if (p) out += budgetStrip();
+  if (state.static && state.changedLocally) out += `<p class="notice">You've changed dinners on this phone. <button class="linkbtn" data-action="resetweek">Go back to the planned week</button></p>`;
   if (state.panelOpen || state.busy === "week") out += panelHtml();
+  if (p && state.picker >= 0) out += pickerHtml();
 
   if (!p) {
     return out + `<div class="empty"><h2>No week planned yet</h2><p>Let Claude plan seven toddler-friendly dinners, or start with the family's starter week.</p>
@@ -639,6 +650,48 @@ function viewWeek() {
   const today = L.todayIndex(p.start, new Date());
   out += `<div class="days">` + planDays().map(d => dayCard(d, today, p)).join("") + `</div>`;
   return out;
+}
+function pickOptions(i) {
+  const days = (state.plan && state.plan.days) || [];
+  const no = new Set(Object.values(state.prefs).filter(p => p.verdict === "no").map(p => L.slug(p.name)));
+  const favIds = Object.values(state.prefs).filter(p => p.verdict === "fav" && p.recipeId && state.recipes[p.recipeId]).map(p => p.recipeId);
+  const extra = state.static ? Object.keys((window.STATIC_WEEK && window.STATIC_WEEK.recipes) || {}) : [];
+  const ids = Array.from(new Set(Object.keys(LIB).concat(favIds, extra)));
+  return ids.filter(id => state.recipes[id] && !state.recipes[id].missing && days.indexOf(id) < 0 && !no.has(L.slug(state.recipes[id].name)))
+    .map(id => ({ id, r: state.recipes[id], cost: L.recipeCost(state.recipes[id], factor(), state.settings.store).total, fav: favIds.indexOf(id) >= 0 }))
+    .sort((a, b) => (b.fav - a.fav) || (a.cost - b.cost));
+}
+function pickerHtml() {
+  const i = state.picker;
+  const cur = getRecipe(state.plan.days[i]);
+  const opts = pickOptions(i);
+  return `<div class="panel" id="picker">
+    <div class="picker-head"><div><h2>Change ${DAYS[i]}'s dinner</h2>
+      <p class="hint">Now: ${h(cur ? cur.name : "")}${state.static ? ". Changes are saved on this phone." : ""}</p></div>
+      <button class="btn" data-action="pickcancel">Cancel</button></div>
+    ${state.canWrite ? `<div><button class="btn primary" data-action="pickclaude" data-i="${i}">${ICON.spark}Let Claude suggest one</button></div>` : ""}
+    <ul class="pick-list">${opts.map(o => `<li><button class="pick" data-action="pick" data-i="${i}" data-id="${h(o.id)}">
+      <span class="pick-name">${h(o.r.name)}${o.fav ? ' <span class="pill">Favourite</span>' : ""}</span>
+      <span class="pick-meta">${h(o.r.protein)}${o.r.minutes ? " · " + o.r.minutes + " min" : ""} · ≈ ${h(L.kr(o.cost))}</span></button></li>`).join("")}</ul>
+  </div>`;
+}
+async function choosePick(i, id) {
+  if (!state.plan || !state.recipes[id]) return;
+  const ids = state.plan.days.slice();
+  ids[i] = id;
+  state.picker = -1;
+  if (state.static) {
+    state.plan = Object.assign({}, state.plan, { days: ids });
+    state.changedLocally = true;
+    lsSet("fd-days-" + state.plan.weekId, ids);
+    toast(DAYS[i] + " is now " + state.recipes[id].name + ".");
+    render(); return;
+  }
+  if (!state.canWrite) return;
+  state.swapping = i; render();
+  try { await savePlan(ids, true); toast(DAYS[i] + " is now " + state.recipes[id].name + "."); }
+  catch (e) { failWrite(e); }
+  finally { state.swapping = -1; render(); }
 }
 function budgetStrip() {
   const st = state.settings.store;
@@ -701,7 +754,7 @@ function dayCard(d, today, p) {
       </div>
     </a>
     <div class="day-actions">
-      ${state.canWrite ? `<button class="iconbtn" data-action="swap" data-i="${d.i}">${ICON.swap}Swap</button>` : "<span></span>"}
+      ${state.canWrite || state.static ? `<button class="iconbtn" data-action="change" data-i="${d.i}">${ICON.swap}Change</button>` : "<span></span>"}
       ${state.canWrite ? `<button class="iconbtn" data-action="fav" data-id="${h(d.id)}" aria-pressed="${isFav}">${ICON.heart}${isFav ? "Favourite" : "Save"}</button>` : ""}
     </div></article>`;
 }
@@ -907,6 +960,14 @@ document.addEventListener("click", async e => {
   else if (a === "starter") { if (state.canWrite) { state.busy = "saving"; render(); try { await savePlan(window.STARTER_WEEK.slice()); } catch (err) { failWrite(err); } state.busy = null; render(); } }
   else if (a === "cancel") { if (state.abort) state.abort.abort(); }
   else if (a === "swap") swapDinner(Number(b.dataset.i));
+  else if (a === "change") { state.picker = Number(b.dataset.i); render(); setTimeout(() => { const el = document.getElementById("picker"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 40); }
+  else if (a === "pick") choosePick(Number(b.dataset.i), b.dataset.id);
+  else if (a === "pickcancel") { state.picker = -1; render(); }
+  else if (a === "pickclaude") { const i = Number(b.dataset.i); state.picker = -1; swapDinner(i); }
+  else if (a === "resetweek") {
+    try { localStorage.removeItem("fd-days-" + window.STATIC_WEEK.plan.weekId); } catch (err) {}
+    state.plan = window.STATIC_WEEK.plan; state.changedLocally = false; toast("Back to the planned week."); render();
+  }
   else if (a === "fav") togglePref(getRecipe(b.dataset.id), "fav");
   else if (a === "nope") togglePref(getRecipe(b.dataset.id), "no");
   else if (a === "unpref") { if (state.canWrite) state.db.doc("prefs/" + b.dataset.key).delete().catch(failWrite); }
