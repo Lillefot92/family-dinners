@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Family Dinners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Fridge-calendar layout: seven day cards stamped with big weekday marks, recipe pages as kitchen cards. */
+  --bg: #f3f5ef; --card: #ffffff; --ink: #1b2620; --muted: #5a685f; --line: #dbe1d6;
+  --accent: #2c6a4c; --accent-ink: #ffffff; --accent-soft: #e2eee6;
+  --saffron: #c98a12; --saffron-soft: #fbefd3; --danger: #a8432d;
+  --sea: #dbe9ef; --sea-ink: #24556a; --sun: #f8ebc9; --sun-ink: #7a5a10;
+  --ember: #f3dfd6; --ember-ink: #7c3a24; --leaf: #e1eedb; --leaf-ink: #33602a;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --r: 14px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101512; --card: #18201b; --ink: #e6ece7; --muted: #9caaa1; --line: #29332d;
+    --accent: #78c79c; --accent-ink: #0d1a13; --accent-soft: #1d3226;
+    --saffron: #f0c25a; --saffron-soft: #372d18; --danger: #ec8d74;
+    --sea: #1b2c33; --sea-ink: #a5cfdf; --sun: #33301d; --sun-ink: #ecd38e;
+    --ember: #352420; --ember-ink: #f0b8a2; --leaf: #213021; --leaf-ink: #b4dba5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101512; --card: #18201b; --ink: #e6ece7; --muted: #9caaa1; --line: #29332d;
+  --accent: #78c79c; --accent-ink: #0d1a13; --accent-soft: #1d3226;
+  --saffron: #f0c25a; --saffron-soft: #372d18; --danger: #ec8d74;
+  --sea: #1b2c33; --sea-ink: #a5cfdf; --sun: #33301d; --sun-ink: #ecd38e;
+  --ember: #352420; --ember-ink: #f0b8a2; --leaf: #213021; --leaf-ink: #b4dba5;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.08rem; }
+p { margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: saturate(1.2) blur(6px); border-bottom: 1px solid var(--line); }
+.topin { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.15rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: .8rem; }
+nav { display: flex; gap: 4px; }
+nav a { text-decoration: none; padding: 8px 12px; border-radius: 999px; color: var(--muted); font-weight: 500; font-size: .95rem; }
+nav a:hover { color: var(--ink); background: var(--accent-soft); }
+nav a[aria-current="page"] { background: var(--ink); color: var(--bg); }
+
+main { padding: 28px 20px 80px; }
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: 22px; }
+.page-head .sub { color: var(--muted); margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--card); padding: 9px 14px; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: .95rem; text-decoration: none; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.btn svg { width: 16px; height: 16px; flex: none; }
+.linkbtn { border: 0; background: none; padding: 4px 6px; color: var(--accent); cursor: pointer; font-weight: 500; font-size: .88rem; border-radius: 6px; }
+.linkbtn:hover { background: var(--accent-soft); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.house { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; color: var(--muted); font-size: .95rem; margin-top: 6px; }
+.stepper { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); padding: 2px; }
+.stepper button { width: 28px; height: 28px; border-radius: 50%; border: 0; background: none; cursor: pointer; font-size: 1.05rem; }
+.stepper button:hover { background: var(--accent-soft); }
+.stepper span { min-width: 74px; text-align: center; font-weight: 500; color: var(--ink); font-size: .9rem; font-variant-numeric: tabular-nums; }
+
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; margin-bottom: 22px; display: grid; gap: 12px; }
+.panel label { font-weight: 600; }
+.panel textarea { width: 100%; min-height: 72px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); resize: vertical; }
+.panel .hint { color: var(--muted); font-size: .9rem; }
+.busy { display: flex; align-items: center; gap: 12px; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--accent-soft); border-top-color: var(--accent); animation: spin .9s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.notice { background: var(--saffron-soft); border: 1px solid color-mix(in srgb, var(--saffron) 35%, transparent); padding: 10px 14px; border-radius: 10px; margin-bottom: 18px; font-size: .95rem; }
+
+.days { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.day { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; position: relative; }
+.day.is-today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.day-link { text-decoration: none; display: flex; flex-direction: column; flex: 1; }
+.day-link:hover h3 { color: var(--accent); }
+.day-img { position: relative; aspect-ratio: 4 / 3; overflow: hidden; }
+.day-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.day-link:hover .day-img img { transform: scale(1.03); }
+.day-stamp { position: absolute; left: 10px; bottom: 6px; font-family: var(--display); font-weight: 700; font-size: 3.1rem; line-height: 1; color: #fff; letter-spacing: -0.03em; text-shadow: 0 2px 14px rgba(0,0,0,.45); }
+.ph .day-stamp { color: currentColor; text-shadow: none; opacity: .9; }
+.tonight { position: absolute; top: 10px; right: 10px; background: var(--accent); color: var(--accent-ink); font-size: .78rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.ph { display: flex; align-items: flex-start; padding: 14px 16px; }
+.ph-name { font-family: var(--display); font-weight: 500; font-size: 1.15rem; line-height: 1.2; max-width: 92%; opacity: .85; }
+.t-sea { background: var(--sea); color: var(--sea-ink); }
+.t-sun { background: var(--sun); color: var(--sun-ink); }
+.t-ember { background: var(--ember); color: var(--ember-ink); }
+.t-leaf { background: var(--leaf); color: var(--leaf-ink); }
+.day-body { padding: 14px 16px 10px; display: grid; gap: 8px; flex: 1; align-content: start; }
+.day-date { color: var(--muted); font-size: .85rem; font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: .8rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+.chip.protein { background: var(--saffron-soft); color: var(--ink); }
+.lunch { font-size: .88rem; color: var(--muted); }
+.lunch b { color: var(--ink); font-weight: 600; }
+.day-actions { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px 10px; gap: 6px; }
+.iconbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; cursor: pointer; padding: 6px 8px; border-radius: 8px; color: var(--muted); font-size: .88rem; font-weight: 500; }
+.iconbtn:hover { background: var(--accent-soft); color: var(--ink); }
+.iconbtn svg { width: 17px; height: 17px; }
+.iconbtn[aria-pressed="true"] { color: var(--danger); }
+.iconbtn[aria-pressed="true"] svg path { fill: currentColor; }
+.overlay { position: absolute; inset: 0; background: color-mix(in srgb, var(--card) 86%, transparent); display: grid; place-items: center; text-align: center; padding: 20px; font-weight: 500; z-index: 2; }
+.overlay .busy { flex-direction: column; }
+
+.empty { background: var(--card); border: 1px dashed var(--line); border-radius: var(--r); padding: 36px 24px; text-align: center; display: grid; gap: 14px; justify-items: center; }
+.empty p { color: var(--muted); max-width: 46ch; }
+
+.back { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); text-decoration: none; font-weight: 500; margin-bottom: 16px; }
+.back:hover { color: var(--ink); }
+.r-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; align-items: center; margin-bottom: 32px; }
+.r-img { border-radius: var(--r); overflow: hidden; aspect-ratio: 4 / 3; }
+.r-img img { width: 100%; height: 100%; object-fit: cover; }
+.r-img.ph { padding: 22px; }
+.r-img.ph .ph-name { font-size: 1.8rem; }
+.r-head { display: grid; gap: 14px; }
+.eyebrow { font-size: .85rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.summary { color: var(--muted); font-size: 1.05rem; max-width: 52ch; }
+.r-cols { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 28px; align-items: start; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
+.ingr ul { list-style: none; padding: 0; margin: 14px 0 0; display: grid; }
+.ingr li { display: grid; grid-template-columns: 5.6em 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: .97rem; }
+.ingr li:first-child { border-top: 0; }
+.q { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--accent); }
+.small { color: var(--muted); font-size: .85rem; margin-top: 12px; }
+.method ol { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 14px; }
+.method li { counter-increment: s; display: grid; grid-template-columns: 2rem 1fr; gap: 10px; max-width: 65ch; }
+.method li::before { content: counter(s); font-family: var(--display); font-weight: 700; font-size: 1.25rem; color: var(--saffron); line-height: 1.3; }
+.callouts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+.callout { border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; }
+.callout.toddler { background: var(--sun); color: var(--sun-ink); }
+.callout.lunchbox { background: var(--sea); color: var(--sea-ink); }
+.callout h3 { font-size: .95rem; }
+.callout p { color: var(--ink); font-size: .95rem; }
+.credit { color: var(--muted); font-size: .8rem; margin-top: 20px; }
+
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; align-items: start; }
+.shop-sec h2 { font-size: 1.05rem; display: flex; justify-content: space-between; align-items: baseline; }
+.shop-sec h2 span { font-family: var(--body); font-weight: 500; font-size: .85rem; color: var(--muted); }
+.shop-sec ul { list-style: none; margin: 10px 0 0; padding: 0; }
+.srow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.srow:first-child { border-top: 0; }
+.srow label { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: pointer; }
+.srow input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex: none; margin: 0; }
+.si { flex: 1; min-width: 0; }
+.si small { display: block; color: var(--muted); font-size: .78rem; }
+.sq { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; font-size: .92rem; }
+.srow.got .si, .srow.got .sq { text-decoration: line-through; color: var(--muted); }
+.progress { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 10px; max-width: 320px; }
+.progress div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
+.addrow { display: flex; gap: 8px; margin-top: 12px; }
+.addrow input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--bg); }
+
+.saved-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.list { list-style: none; padding: 0; margin: 12px 0 0; }
+.list li { padding: 10px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.list li:first-child { border-top: 0; }
+.list a { font-weight: 500; text-decoration: none; }
+.list a:hover { color: var(--accent); }
+.week-names { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+.pill { font-size: .75rem; font-weight: 600; background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+.muted { color: var(--muted); }
+
+
+.budget { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 18px; margin-bottom: 22px; }
+.budget-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 18px; }
+.budget-big { font-family: var(--display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; margin-right: 6px; }
+.bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.bar div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
+.budget.over .bar div { background: var(--danger); }
+.warn { color: var(--danger); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; gap: 2px; vertical-align: middle; margin-left: 4px; }
+.seg button { border: 0; background: none; padding: 5px 11px; border-radius: 999px; cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.chip.cost { background: var(--leaf); color: var(--leaf-ink); }
+.ingr li { grid-template-columns: 5.6em 1fr auto !important; }
+.ic { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.need { color: var(--muted); font-weight: 500; font-size: .88rem; }
+
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: .92rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); z-index: 10; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 760px) {
+  .r-hero, .r-cols, .saved-grid, .callouts { grid-template-columns: 1fr; }
+  .topin { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .brand-text { display: none; }
+  nav a { padding: 7px 10px; font-size: .9rem; }
+  main { padding-top: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topin">
+    <a class="brand" href="#week"><span class="brand-mark" aria-hidden="true">FD</span><span class="brand-text">Family Dinners</span></a>
+    <nav aria-label="Main">
+      <a href="#week" data-nav="week">This week</a>
+      <a href="#shopping" data-nav="shopping">Shopping</a>
+      <a href="#saved" data-nav="saved">Saved</a>
+    </nav>
+  </div>
+</header>
+<main id="main" class="wrap"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="recipes.js"></script>
+<script src="prices.js"></script>
+<script src="logic.js"></script>
+<script src="week.js"></script>
+<script>
+"use strict";
+const APP_URL = "https://claude.ai/artifact/2nCNPhYMFE7C6oLWDsTrZJ";
+const L = window.Logic;
+L.setPrices(window.PRICES, window.ICA_FACTOR);
+const STORES = { willys: "Willys Berga", ica: "ICA Maxi Berga" };
+const DAYS = L.DAYS;
+const LIB = {};
+window.LIBRARY.forEach(r => { LIB[r.id] = r; });
+
+const ICON = {
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.5 4.5 7 4.5c2.1 0 3.6 1.2 5 2.9 1.4-1.7 2.9-2.9 5-2.9 3.5 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor"/></svg>',
+  link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+  shuffle: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4c4 0 6 10 10 10h4M3 17h4c1.7 0 3-1.8 4.2-4M13 9c1.1-1.2 2.4-2 4-2h4M18 4l3 3-3 3M18 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+
+const state = {
+  db: null, user: null, local: false, canWrite: true,
+  plan: null, planLoaded: false, slow: false,
+  settings: { adults: 2, toddlers: 1, budget: 1300, store: "willys" },
+  recipes: Object.assign({}, LIB), loading: {},
+  shop: {}, extras: [], prefs: {}, weeks: [],
+  panelOpen: false, wishes: "", extraText: "", houseOpen: false,
+  busy: null, swapping: -1, abort: null
+};
+let unsubShop = null, unsubExtras = null, shopWeek = null, loadTimer = null;
+const pendingShop = new Set();
+
+function h(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3800);
+}
+function tint(r) {
+  const p = ((r && r.protein) || "") + " " + ((r && r.name) || "");
+  if (/salmon|cod|tuna|fish|prawn|shrimp|haddock|pollock|mackerel|trout|seafood/i.test(p)) return "t-sea";
+  if (/chicken|turkey|egg/i.test(p)) return "t-sun";
+  if (/beef|pork|lamb|sausage|mince|meat|falukorv|ham|bacon/i.test(p)) return "t-ember";
+  return "t-leaf";
+}
+function getRecipe(id) { return state.recipes[id] || null; }
+function planDays() {
+  if (!state.plan || !Array.isArray(state.plan.days)) return [];
+  return state.plan.days.slice(0, 7).map((id, i) => ({ i, day: DAYS[i], id, recipe: getRecipe(id) }));
+}
+function prefFor(name) { return state.prefs[L.slug(name)] || null; }
+function factor() { return L.scaleFactor(state.settings); }
+function householdText() {
+  const a = state.settings.adults, t = state.settings.toddlers;
+  const parts = [a + (a === 1 ? " adult" : " adults")];
+  if (t) parts.push(t + (t === 1 ? " toddler" : " toddlers"));
+  return parts.join(" + ");
+}
+
+// ---------- data ----------
+async function loadRecipe(id) {
+  if (!id || state.recipes[id] || state.loading[id] || !state.db) return;
+  state.loading[id] = true;
+  try {
+    const snap = await state.db.doc("recipes/" + id).get();
+    if (snap.exists) state.recipes[id] = Object.assign({ id }, snap.data());
+    else state.recipes[id] = { id, missing: true, name: "Recipe not found", ingredients: [], steps: [] };
+  } catch (e) {
+    delete state.loading[id];
+    return;
+  }
+  render();
+}
+function onPlanChange() {
+  planDays().forEach(d => { if (!d.recipe) loadRecipe(d.id); });
+  const wk = state.plan && state.plan.weekId;
+  if (state.db && wk && wk !== shopWeek) {
+    shopWeek = wk;
+    if (unsubShop) unsubShop();
+    if (unsubExtras) unsubExtras();
+    state.shop = {}; state.extras = [];
+    unsubShop = state.db.collection("shop").where("weekId", "==", wk).onSnapshot(s => {
+      const m = {};
+      s.docs.forEach(d => { const v = d.data(); if (v && v.key && v.state) m[v.key] = v.state; });
+      state.shop = m; render();
+    }, () => {});
+    unsubExtras = state.db.collection("extras").where("weekId", "==", wk).onSnapshot(s => {
+      state.extras = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      render();
+    }, () => {});
+  }
+}
+
+function canTick() { return state.canWrite || state.static; }
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function goStatic() {
+  const W = window.STATIC_WEEK;
+  state.static = true; state.local = true; state.canWrite = false; state.planLoaded = true;
+  state.plan = W.plan;
+  const saved = lsGet("fd-settings") || {};
+  state.settings = Object.assign({ adults: 2, toddlers: 1, budget: 1300, store: "willys" }, W.settings || {}, saved.store ? { store: saved.store } : {});
+  Object.assign(state.recipes, W.recipes || {});
+  state.shop = lsGet("fd-shop-" + W.plan.weekId) || {};
+  const sv = document.querySelector('nav a[data-nav="saved"]'); if (sv) sv.remove();
+  render();
+}
+async function start() {
+  render();
+  if (window.STATIC_WEEK) { window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); }); return goStatic(); }
+  window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
+  const c = window.claude;
+  if (!c || typeof c.use !== "function") return goLocal();
+  let db = null, user = null;
+  try { [db, user] = await Promise.all([c.use("db"), c.use("user")]); } catch (e) { db = null; }
+  if (!db) return goLocal();
+  state.db = db; state.user = user;
+  try {
+    const can = user ? await user.can("data.write") : null;
+    state.canWrite = can !== false;
+  } catch (e) { state.canWrite = true; }
+  loadTimer = setTimeout(() => { state.slow = true; render(); }, 10000);
+  db.doc("app/plan").onSnapshot(s => {
+    state.plan = s.exists ? s.data() : null;
+    state.planLoaded = true;
+    if (!s.metadata.fromCache) { clearTimeout(loadTimer); state.slow = false; }
+    onPlanChange(); render();
+  }, () => { clearTimeout(loadTimer); state.planLoaded = true; state.slow = true; render(); });
+  db.doc("app/settings").onSnapshot(s => {
+    const v = s.exists ? s.data() : null;
+    if (v) state.settings = { adults: clampInt(v.adults, 1, 8, 2), toddlers: clampInt(v.toddlers, 0, 6, 1),
+      budget: clampInt(v.budget, 200, 10000, 1300), store: v.store === "ica" ? "ica" : "willys" };
+    render();
+  }, () => {});
+  db.collection("prefs").onSnapshot(s => {
+    const m = {}; s.docs.forEach(d => { m[d.id] = d.data(); }); state.prefs = m; render();
+  }, () => {});
+  db.collection("weeks").orderBy("createdAt", "desc").limit(20).onSnapshot(s => {
+    state.weeks = s.docs.map(d => Object.assign({ id: d.id }, d.data())); render();
+  }, () => {});
+  render();
+}
+function clampInt(v, lo, hi, dflt) { const n = Math.round(Number(v)); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt; }
+function goLocal() {
+  state.local = true; state.canWrite = false; state.planLoaded = true;
+  state.plan = { weekId: "local", start: L.isoDate(L.planStart(new Date())), days: window.STARTER_WEEK.slice() };
+  render();
+}
+
+function failWrite(e) {
+  if (e && e.code === "invalid_argument") { state.canWrite = false; toast("You can view this plan but not change it. Ask the owner for edit access."); }
+  else if (e && e.code === "quota_exceeded") toast("The planner's storage is full. Remove some old weeks and try again.");
+  else toast("Couldn't save that. Check your connection and try again.");
+  render();
+}
+
+async function savePlan(ids, keepWeek, knownNames) {
+  const names = ids.map((id, i) => (getRecipe(id) || {}).name || (knownNames && knownNames[i]) || "");
+  const weekId = keepWeek && state.plan ? state.plan.weekId : "w-" + Date.now().toString(36);
+  const startIso = keepWeek && state.plan ? state.plan.start : L.isoDate(L.planStart(new Date()));
+  const plan = { weekId, start: startIso, days: ids, names, createdAt: keepWeek && state.plan ? (state.plan.createdAt || Date.now()) : Date.now() };
+  await state.db.doc("app/plan").set(plan);
+  await state.db.doc("weeks/" + weekId).set({ weekId, start: startIso, days: ids, names, createdAt: plan.createdAt });
+}
+async function saveRecipe(r) {
+  const copy = Object.assign({}, r); delete copy.loading;
+  await state.db.doc("recipes/" + r.id).set(copy);
+  state.recipes[r.id] = r;
+}
+
+// ---------- Claude ----------
+const SCHEMA = '{"name": short dish name, "protein": main protein e.g. "Salmon", "minutes": total cooking time as a number, ' +
+  '"summary": one sentence, "ingredients": [{"item": simple English ingredient name in singular e.g. "Yellow onion", "qty": number or null, ' +
+  '"unit": one of "g","ml","pcs","tbsp","tsp","can","pack","jar","bunch","clove", "section": one of "Fruit & veg","Meat & fish","Dairy & eggs","Bakery","Frozen","Pantry", ' +
+  '"costSEK" (estimated cost in SEK of the amount used, at Willys store-brand prices)}], "steps": [3 to 7 short steps], "toddler": one or two sentences on making it safe and easy for a toddler, "lunch": one sentence on how the leftovers become next-day lunch}';
+
+function rulesText() {
+  const s = state.settings;
+  return "Household: " + s.adults + " adults and " + s.toddlers + " toddler(s) aged about 1–3. " +
+    "Every dinner is cooked with extra so the leftovers become everyone's lunch the next day: size every recipe for " +
+    L.portionsFor(s) + " adult portions in total (dinner plus next-day lunch). " +
+    "Rules: toddler-friendly (mild, low salt, soft textures; say how to cut round foods like grapes, cherry tomatoes or sausages); " +
+    "every dinner has a clear protein; ingredients easy to find in a Swedish supermarket such as ICA or Coop; metric units only; " +
+    "do not list salt, pepper, cooking oil or water. " + budgetText();
+}
+function budgetText() {
+  const b = state.settings.budget;
+  return "Budget: the family shops at Willys and ICA Maxi in Helsingborg, Sweden, and wants everyday budget food, nothing fancy. " +
+    "The whole week of 7 dinners (with lunch leftovers) should cost about " + b + " kr or less, so aim for about " + Math.round(b / 7) + " kr per dinner. " +
+    "Use store brands (Garant, Eldorado, ICA Basic) and cheap proteins such as chicken drumsticks, mince, falukorv, eggs, lentils, beans, frozen fish; use frozen vegetables where sensible; avoid premium ingredients like fresh cod, steak, parmesan, pine nuts or fresh herbs beyond one. " +
+    "Current Willys prices, use these ingredient names exactly when you use them and base costSEK on them: " + L.priceListText() + ". ";
+}
+function avoidText(extraNames) {
+  const no = Object.values(state.prefs).filter(p => p.verdict === "no").map(p => p.name);
+  const fav = Object.values(state.prefs).filter(p => p.verdict === "fav").map(p => p.name);
+  const last = (state.plan && state.plan.names) || [];
+  let t = "";
+  const avoid = last.concat(extraNames || []);
+  if (avoid.length) t += "Do not repeat these dinners: " + avoid.join("; ") + ". ";
+  if (no.length) t += "The family does not want these again: " + no.join("; ") + ". ";
+  if (fav.length) t += "Family favourites (you may bring back at most one): " + fav.join("; ") + ". ";
+  return t;
+}
+async function getSample() {
+  try { return window.claude ? await window.claude.use("sample") : null; } catch (e) { return null; }
+}
+function claudeError(e) {
+  if (e && e.name === "AbortError") return "Stopped.";
+  const code = e && e.code;
+  if (code === "not_granted") return "Claude isn't allowed to plan from this page. You can still mix a week from saved recipes.";
+  if (code === "rate_limited") return "Claude is busy right now. Try again in a minute.";
+  return "Claude couldn't plan that. Try again, or mix a week from saved recipes.";
+}
+
+async function planWithClaude() {
+  if (!state.canWrite || state.busy) return;
+  const sample = await getSample();
+  if (!sample) { toast("Claude isn't available here, so this week is mixed from saved recipes."); return shuffleWeek(); }
+  state.busy = "week"; state.abort = new AbortController(); render();
+  try {
+    const prompt = "You plan a week of family dinners, Monday to Sunday. " + rulesText() +
+      "Vary proteins across the week: at least one fish dinner, at least one vegetarian protein dinner (lentils, beans, chickpeas, halloumi or eggs), and no protein more than twice. " +
+      "Monday to Thursday dinners take at most 40 minutes. " + avoidText() +
+      (state.wishes.trim() ? "The family's wishes for this week: " + state.wishes.trim().slice(0, 500) + ". " : "") +
+      'Return only JSON shaped {"dinners": [7 objects in order Monday to Sunday]}, each object shaped ' + SCHEMA + ".";
+    const val = await sample.json(prompt, { modelTier: "default", signal: state.abort.signal });
+    const list = Array.isArray(val) ? val : (val && val.dinners);
+    if (!Array.isArray(list)) throw new Error("bad");
+    const stamp = Date.now().toString(36);
+    const recipes = list.slice(0, 7).map((r, i) => L.normalizeRecipe(r, "c" + stamp + i)).filter(Boolean);
+    if (recipes.length < 7) throw new Error("short");
+    state.busy = "saving"; render();
+    for (const r of recipes) await saveRecipe(r);
+    await savePlan(recipes.map(r => r.id));
+    state.panelOpen = false; state.wishes = "";
+    toast("Your new week is ready.");
+    location.hash = "#week";
+  } catch (e) {
+    if (e && e.code && /invalid_argument|quota_exceeded|unavailable|revoked/.test(e.code)) failWrite(e);
+    else toast(claudeError(e));
+  } finally {
+    state.busy = null; state.abort = null; render();
+  }
+}
+
+function pickLibrary(exclude, count) {
+  const no = new Set(Object.values(state.prefs).filter(p => p.verdict === "no").map(p => L.slug(p.name)));
+  const favIds = Object.values(state.prefs).filter(p => p.verdict === "fav" && p.recipeId && state.recipes[p.recipeId]).map(p => p.recipeId);
+  let pool = Array.from(new Set(Object.keys(LIB).concat(favIds))).filter(id => !no.has(L.slug(state.recipes[id].name)));
+  let fresh = pool.filter(id => exclude.indexOf(id) < 0);
+  if (fresh.length < count) fresh = pool;
+  for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
+  return fresh.slice(0, count);
+}
+async function shuffleWeek() {
+  if (!state.canWrite || state.busy) return;
+  state.busy = "saving"; render();
+  try {
+    const current = (state.plan && state.plan.days) || [];
+    const ids = pickLibrary(current, 7);
+    await savePlan(ids);
+    state.panelOpen = false;
+    toast("New week mixed from saved recipes.");
+    location.hash = "#week";
+  } catch (e) { failWrite(e); }
+  finally { state.busy = null; render(); }
+}
+
+async function swapDinner(i) {
+  if (!state.canWrite || state.busy || state.swapping >= 0 || !state.plan) return;
+  const ids = state.plan.days.slice();
+  state.swapping = i; render();
+  try {
+    const sample = await getSample();
+    let newId = null;
+    if (sample) {
+      try {
+        const others = ids.map((id, j) => j === i ? null : DAYS[j] + ": " + ((getRecipe(id) || {}).name || "")).filter(Boolean);
+        const prompt = "You suggest one family dinner for " + DAYS[i] + ". " + rulesText() +
+          (i < 4 ? "It must take at most 40 minutes. " : "") +
+          "The rest of the week is: " + others.join("; ") + ". Choose a different protein from the dinners the day before and after. " +
+          avoidText([(getRecipe(ids[i]) || {}).name || ""]) +
+          (state.wishes.trim() ? "Wishes: " + state.wishes.trim().slice(0, 300) + ". " : "") +
+          "Return only JSON shaped " + SCHEMA + ".";
+        const val = await sample.json(prompt, { modelTier: "default" });
+        const r = L.normalizeRecipe(val && val.dinner ? val.dinner : val, "c" + Date.now().toString(36) + "s");
+        if (r) { await saveRecipe(r); newId = r.id; }
+      } catch (e) {
+        if (e && e.code && /invalid_argument|quota_exceeded/.test(e.code)) throw e;
+        toast(claudeError(e) + " Picked a saved recipe instead.");
+      }
+    }
+    if (!newId) newId = pickLibrary(ids, 1)[0];
+    ids[i] = newId;
+    await savePlan(ids, true);
+  } catch (e) { failWrite(e); }
+  finally { state.swapping = -1; render(); }
+}
+
+// ---------- small writes ----------
+async function togglePref(r, verdict) {
+  if (!state.canWrite || !r) return;
+  const key = L.slug(r.name);
+  const cur = state.prefs[key];
+  const ref = state.db.doc("prefs/" + key);
+  try {
+    if (cur && cur.verdict === verdict) await ref.delete();
+    else await ref.set({ name: r.name, recipeId: r.id, verdict, updatedAt: Date.now() });
+    if (verdict === "no" && !(cur && cur.verdict === "no")) toast("Got it. Claude won't suggest " + r.name + " again.");
+  } catch (e) { failWrite(e); }
+}
+async function setShop(key, value) {
+  if (state.static) {
+    if (value) state.shop[key] = value; else delete state.shop[key];
+    lsSet("fd-shop-" + state.plan.weekId, state.shop); render(); return;
+  }
+  if (!state.canWrite || !state.plan || pendingShop.has(key)) return;
+  const wk = state.plan.weekId;
+  const ref = state.db.doc("shop/" + wk + "__" + key);
+  pendingShop.add(key);
+  const prev = state.shop[key];
+  if (value) state.shop[key] = value; else delete state.shop[key];
+  render();
+  try {
+    if (value) await ref.set({ weekId: wk, key, state: value, at: Date.now() });
+    else await ref.delete();
+  } catch (e) {
+    if (prev) state.shop[key] = prev; else delete state.shop[key];
+    failWrite(e);
+  } finally { pendingShop.delete(key); }
+}
+async function addExtra() {
+  const text = state.extraText.trim().slice(0, 80);
+  if (!text || !state.canWrite || !state.plan) return;
+  state.extraText = "";
+  try { await state.db.collection("extras").add({ weekId: state.plan.weekId, text, got: false, createdAt: Date.now() }); }
+  catch (e) { failWrite(e); }
+}
+async function saveSettings(s) {
+  state.settings = s; render();
+  if (!state.canWrite || !state.db) return;
+  try { await state.db.doc("app/settings").set(s); } catch (e) { failWrite(e); }
+}
+async function setHousehold(field, delta) {
+  if (!state.canWrite) return;
+  const s = Object.assign({}, state.settings);
+  if (field === "budget") s.budget = clampInt(s.budget + delta, 200, 10000, 1300);
+  else s[field] = field === "adults" ? clampInt(s.adults + delta, 1, 8, 2) : clampInt(s.toddlers + delta, 0, 6, 1);
+  if (s[field] === state.settings[field]) return;
+  saveSettings(s);
+}
+function setStore(store) {
+  const st = store === "ica" ? "ica" : "willys";
+  if (st === state.settings.store) return;
+  if (state.static) { state.settings = Object.assign({}, state.settings, { store: st }); lsSet("fd-settings", { store: st }); render(); return; }
+  saveSettings(Object.assign({}, state.settings, { store: st }));
+}
+// Estimated till total for the week at a store: whole packs, skipping "Have it" items.
+function weekTotal(store) {
+  const { agg } = shopData();
+  let t = 0, unknown = 0;
+  L.SECTIONS.forEach(sec => agg[sec].forEach(r => {
+    if (state.shop[r.key] === "have") return;
+    const c = L.shopRowCost(r, store);
+    if (c) t += c.cost; else unknown++;
+  }));
+  return { total: t, unknown };
+}
+function costLine(r) {
+  const c = L.recipeCost(r, factor(), state.settings.store);
+  if (!c.total) return null;
+  return c;
+}
+
+// ---------- views ----------
+function route() {
+  const hsh = location.hash.replace(/^#/, "");
+  if (hsh.indexOf("recipe-") === 0) return { view: "recipe", id: hsh.slice(7) };
+  if (hsh === "shopping" || hsh === "saved") return { view: hsh };
+  return { view: "week" };
+}
+
+function imgBlock(r, cls, stamp) {
+  if (r && r.image) return `<div class="${cls}"><img src="${h(r.image)}" alt="${h(r.name)}" loading="lazy">${stamp || ""}</div>`;
+  return `<div class="${cls} ph ${tint(r)}"><span class="ph-name">${h(r ? r.name : "")}</span>${stamp || ""}</div>`;
+}
+
+function viewWeek() {
+  const p = state.plan;
+  let out = "";
+  if (state.static) out += "";
+  else if (state.local) out += `<p class="notice">Open this planner on claude.ai while signed in to save your weeks and share the shopping list. Showing the starter week.</p>`;
+  else if (state.slow) out += `<p class="notice">Can't reach your saved plan right now. What you see may be out of date.</p>`;
+  if (!state.planLoaded) return out + `<div class="empty"><div class="busy"><span class="spinner"></span>Loading your week…</div></div>`;
+
+  const head = `<div class="page-head"><div><h1>${p ? "Week of " + h(L.weekLabel(p.start)) : "Your dinner week"}</h1>
+      <div class="house">${houseControl()}</div></div>
+      ${state.canWrite ? `<div class="actions"><button class="btn primary" data-action="panel">${ICON.spark}Plan a new week</button></div>` : ""}</div>`;
+  out += head;
+  if (p) out += budgetStrip();
+  if (state.panelOpen || state.busy === "week") out += panelHtml();
+
+  if (!p) {
+    return out + `<div class="empty"><h2>No week planned yet</h2><p>Let Claude plan seven toddler-friendly dinners, or start with the family's starter week.</p>
+      ${state.canWrite ? `<div class="actions" style="justify-content:center"><button class="btn primary" data-action="panel">${ICON.spark}Plan with Claude</button><button class="btn" data-action="starter">Use the starter week</button></div>` : ""}</div>`;
+  }
+  const today = L.todayIndex(p.start, new Date());
+  out += `<div class="days">` + planDays().map(d => dayCard(d, today, p)).join("") + `</div>`;
+  return out;
+}
+function budgetStrip() {
+  const st = state.settings.store;
+  const here = weekTotal(st), other = weekTotal(st === "ica" ? "willys" : "ica");
+  const b = state.settings.budget;
+  const pct = Math.min(100, Math.round(here.total / b * 100));
+  const over = here.total > b;
+  return `<div class="budget${over ? " over" : ""}">
+    <div class="budget-top"><div><span class="budget-big">${h(L.kr(here.total))}</span>
+      <span class="muted">estimated shop at ${h(STORES[st])}</span></div>
+      <div class="muted">${over ? `<b class="warn">${h(L.kr(here.total - b))} over</b>` : `${h(L.kr(b - here.total))} left`} of ${h(L.kr(b))} · ${h(STORES[st === "ica" ? "willys" : "ica"])} ≈ ${h(L.kr(other.total))}</div></div>
+    <div class="bar" aria-hidden="true"><div style="width:${pct}%"></div></div>
+    <p class="small" style="margin-top:8px">Whole packs for every dinner and next-day lunch. Tick "Have it" on the shopping list for things already at home and the total drops.</p>
+  </div>`;
+}
+function houseControl() {
+  if (state.houseOpen && state.canWrite) {
+    return `<span>Cooking for</span>
+      <span class="stepper"><button data-action="hh" data-f="adults" data-d="-1" aria-label="One adult fewer">−</button><span>${state.settings.adults} ${state.settings.adults === 1 ? "adult" : "adults"}</span><button data-action="hh" data-f="adults" data-d="1" aria-label="One more adult">+</button></span>
+      <span class="stepper"><button data-action="hh" data-f="toddlers" data-d="-1" aria-label="One toddler fewer">−</button><span>${state.settings.toddlers} ${state.settings.toddlers === 1 ? "toddler" : "toddlers"}</span><button data-action="hh" data-f="toddlers" data-d="1" aria-label="One more toddler">+</button></span>
+      <span class="stepper"><button data-action="hh" data-f="budget" data-d="-100" aria-label="Lower the weekly budget by 100 kr">−</button><span style="min-width:96px">${L.kr(state.settings.budget)}/week</span><button data-action="hh" data-f="budget" data-d="100" aria-label="Raise the weekly budget by 100 kr">+</button></span>
+      <button class="linkbtn" data-action="house">Done</button>`;
+  }
+  return `<span>Cooking for ${h(householdText())}, with leftovers for next-day lunch. Budget ${h(L.kr(state.settings.budget))} a week.${state.static && window.STATIC_WEEK.publishedAt ? " Updated " + h(window.STATIC_WEEK.publishedAt) + "." : ""}</span>${state.canWrite ? `<button class="linkbtn" data-action="house">Change</button>` : ""}`;
+}
+function panelHtml() {
+  if (state.busy === "week" || state.busy === "saving") {
+    return `<div class="panel"><div class="busy"><span class="spinner"></span><div><b>${state.busy === "week" ? "Claude is planning seven dinners" : "Saving your week"}</b>
+      <div class="hint">${state.busy === "week" ? "This usually takes under a minute." : "Almost done."}</div></div></div>
+      ${state.busy === "week" ? `<div><button class="btn" data-action="cancel">Stop</button></div>` : ""}</div>`;
+  }
+  return `<div class="panel">
+    <label for="wishes">Anything special this week?</label>
+    <textarea id="wishes" placeholder="For example: more fish, a quick dinner on Wednesday, use up the broccoli">${h(state.wishes)}</textarea>
+    <p class="hint">Claude avoids last week's dinners and anything you've marked "Not again". Every recipe makes enough for tomorrow's lunch.</p>
+    <div class="actions">
+      <button class="btn primary" data-action="plan">${ICON.spark}Plan with Claude</button>
+      <button class="btn" data-action="shuffle">${ICON.shuffle}Mix from saved recipes</button>
+      <button class="btn" data-action="panel">Cancel</button>
+    </div></div>`;
+}
+function dayCard(d, today, p) {
+  const r = d.recipe;
+  const isToday = d.i === today;
+  const stamp = `<span class="day-stamp">${d.day.slice(0, 3)}</span>${isToday ? '<span class="tonight">Tonight</span>' : ""}`;
+  const busy = state.swapping === d.i ? `<div class="overlay"><div class="busy"><span class="spinner"></span>Finding another dinner…</div></div>` : "";
+  if (!r) {
+    return `<article class="day">${busy}<div class="day-img ph t-leaf">${stamp}</div><div class="day-body"><p class="day-date">${d.day}</p><p class="muted">Loading…</p></div></article>`;
+  }
+  const fav = prefFor(r.name);
+  const isFav = !!(fav && fav.verdict === "fav");
+  return `<article class="day${isToday ? " is-today" : ""}">${busy}
+    <a class="day-link" href="#recipe-${h(d.id)}">
+      ${imgBlock(r, "day-img", stamp)}
+      <div class="day-body">
+        <p class="day-date">${d.day} ${h(L.dayDate(p.start, d.i))}</p>
+        <h3>${h(r.name)}</h3>
+        <div class="chips"><span class="chip protein">${h(r.protein)}</span>${r.minutes ? `<span class="chip">${r.minutes} min</span>` : ""}${(() => { const c = costLine(r); return c ? `<span class="chip cost">≈ ${h(L.kr(c.total))}</span>` : ""; })()}</div>
+        ${r.lunch ? `<p class="lunch"><b>Lunch next day:</b> ${h(r.lunch)}</p>` : ""}
+      </div>
+    </a>
+    <div class="day-actions">
+      ${state.canWrite ? `<button class="iconbtn" data-action="swap" data-i="${d.i}">${ICON.swap}Swap</button>` : "<span></span>"}
+      ${state.canWrite ? `<button class="iconbtn" data-action="fav" data-id="${h(d.id)}" aria-pressed="${isFav}">${ICON.heart}${isFav ? "Favourite" : "Save"}</button>` : ""}
+    </div></article>`;
+}
+
+function viewRecipe(id) {
+  const r = getRecipe(id);
+  if (!r) {
+    loadRecipe(id);
+    if (!state.db && !state.local) return `<a class="back" href="#week">← This week</a><div class="empty"><div class="busy"><span class="spinner"></span>Loading recipe…</div></div>`;
+    if (state.local) return `<a class="back" href="#week">← This week</a><div class="empty"><h2>Recipe not available</h2><p>Open the planner on claude.ai while signed in to see this recipe.</p></div>`;
+    return `<a class="back" href="#week">← This week</a><div class="empty"><div class="busy"><span class="spinner"></span>Loading recipe…</div></div>`;
+  }
+  if (r.missing) return `<a class="back" href="#week">← This week</a><div class="empty"><h2>Recipe not found</h2><p>This recipe may have been removed.</p></div>`;
+  const p = state.plan;
+  const idx = p && Array.isArray(p.days) ? p.days.indexOf(id) : -1;
+  const f = factor();
+  const pref = prefFor(r.name);
+  const isFav = !!(pref && pref.verdict === "fav"), isNo = !!(pref && pref.verdict === "no");
+  const eyebrow = idx >= 0 ? DAYS[idx] + " · " + L.dayDate(p.start, idx) : "From your recipes";
+  const rc = costLine(r);
+  const portions = L.portionsFor(state.settings);
+  return `<a class="back" href="#week">← This week</a>
+  <article>
+    <div class="r-hero">
+      ${imgBlock(r, "r-img", "")}
+      <div class="r-head">
+        <p class="eyebrow">${h(eyebrow)}</p>
+        <h1>${h(r.name)}</h1>
+        ${r.summary ? `<p class="summary">${h(r.summary)}</p>` : ""}
+        <div class="chips"><span class="chip protein">${h(r.protein)}</span>${r.minutes ? `<span class="chip">${r.minutes} min</span>` : ""}<span class="chip">Serves ${h(householdText())} + lunch</span>${rc ? `<span class="chip cost">≈ ${h(L.kr(rc.total))} · ${h(L.kr(rc.total / portions))} per portion at ${h(STORES[state.settings.store])}</span>` : ""}</div>
+        <div class="actions">
+          ${state.canWrite ? `<button class="btn" data-action="fav" data-id="${h(id)}" aria-pressed="${isFav}">${ICON.heart}${isFav ? "Favourite" : "Add to favourites"}</button>
+          <button class="btn" data-action="nope" data-id="${h(id)}">${isNo ? "Marked not again · Undo" : "Not again"}</button>` : ""}
+          ${APP_URL || state.static ? `<button class="btn" data-action="copylink" data-id="${h(id)}">${ICON.link}Copy link</button>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="r-cols">
+      <section class="card ingr"><h2>Ingredients</h2>
+        <ul>${r.ingredients.map(i => { const c = L.ingredientCost(Object.assign({}, i), factor(), state.settings.store); return `<li><span class="q">${h(L.fmtQty(i.qty * factor(), i.unit))}</span><span>${h(i.item)}</span><span class="ic">${c != null ? h(L.kr(c)) : ""}</span></li>`; }).join("")}</ul>
+        <p class="small">Cost is for the amount used, at ${h(STORES[state.settings.store])} prices checked ${h(window.PRICES_CHECKED)}. Salt, pepper and cooking oil aren't listed.</p>
+      </section>
+      <section class="card method"><h2>Method</h2>
+        <ol>${r.steps.map(s => `<li><span>${h(s)}</span></li>`).join("")}</ol>
+        <div class="callouts">
+          ${r.toddler ? `<div class="callout toddler"><h3>For the toddler</h3><p>${h(r.toddler)}</p></div>` : ""}
+          ${r.lunch ? `<div class="callout lunchbox"><h3>Tomorrow's lunch</h3><p>${h(r.lunch)}</p></div>` : ""}
+        </div>
+      </section>
+    </div>
+    ${r.credit ? `<p class="credit">Photo: <a href="${h(r.credit.url)}">${h(r.credit.text)}</a>, Wikimedia Commons. Your dish will look a little different.</p>` : ""}
+  </article>`;
+}
+
+function shopData() {
+  const days = planDays();
+  const agg = L.aggregate(days, factor());
+  return { days, agg, missing: days.some(d => !d.recipe) };
+}
+function viewShopping() {
+  const p = state.plan;
+  if (!state.planLoaded) return `<div class="empty"><div class="busy"><span class="spinner"></span>Loading…</div></div>`;
+  if (!p) return `<div class="empty"><h2>No week planned yet</h2><p>Plan a week first and the shopping list builds itself.</p><a class="btn primary" href="#week">Go to this week</a></div>`;
+  const { agg, missing } = shopData();
+  let total = 0, got = 0;
+  const have = [];
+  let secs = "";
+  L.SECTIONS.forEach(sec => {
+    const rows = agg[sec].filter(r => { if (state.shop[r.key] === "have") { have.push(r); return false; } return true; });
+    if (!rows.length) return;
+    rows.sort((a, b) => (state.shop[a.key] === "got") - (state.shop[b.key] === "got"));
+    total += rows.length;
+    const g = rows.filter(r => state.shop[r.key] === "got").length; got += g;
+    secs += `<section class="card shop-sec"><h2>${h(sec)} <span>${rows.length - g} left</span></h2><ul>` + rows.map(r => {
+      const isGot = state.shop[r.key] === "got";
+      const c = L.shopRowCost(r, state.settings.store);
+      const buy = c ? (c.label ? (c.packs && c.packs > 1 ? c.packs + " × " : "") + c.label : "Claude's estimate") : "";
+      return `<li class="srow${isGot ? " got" : ""}"><label><input type="checkbox" id="g-${h(r.key)}" data-action="got" data-key="${h(r.key)}" ${isGot ? "checked" : ""} ${canTick() ? "" : "disabled"}>
+        <span class="si">${h(r.item)} <span class="need">${h(r.hasQty ? L.fmtQty(r.qty, r.unit) : "")}</span><small>${h(buy)}${buy ? " · " : ""}${h(r.days.join(", "))}</small></span><span class="sq">${c ? (c.estimated ? "≈ " : "") + h(L.kr(c.cost)) : ""}</span></label>
+        ${canTick() && !isGot ? `<button class="linkbtn" data-action="have" data-key="${h(r.key)}">Have it</button>` : ""}</li>`;
+    }).join("") + `</ul></section>`;
+  });
+  const extras = state.extras;
+  if (state.static) { /* no extra items on the public copy */ }
+  total += extras.length; got += extras.filter(e => e.got).length;
+  if (!state.static) secs += `<section class="card shop-sec"><h2>Extra items <span>${extras.filter(e => !e.got).length} left</span></h2>
+    ${extras.length ? `<ul>${extras.map(e => `<li class="srow${e.got ? " got" : ""}"><label><input type="checkbox" id="x-${h(e.id)}" data-action="xgot" data-id="${h(e.id)}" ${e.got ? "checked" : ""} ${state.canWrite ? "" : "disabled"}><span class="si">${h(e.text)}</span></label>${state.canWrite ? `<button class="linkbtn" data-action="xdel" data-id="${h(e.id)}" aria-label="Remove ${h(e.text)}">Remove</button>` : ""}</li>`).join("")}</ul>` : `<p class="small">Milk, nappies, coffee… anything else for this week's shop.</p>`}
+    ${state.canWrite ? `<form class="addrow" data-form="extra"><input id="extra-input" placeholder="Add an item" value="${h(state.extraText)}" autocomplete="off"><button class="btn" type="submit">Add</button></form>` : ""}
+  </section>`;
+  if (have.length) {
+    secs += `<section class="card shop-sec"><h2>Already at home <span>${have.length}</span></h2><ul>` + have.map(r =>
+      `<li class="srow"><span class="si">${h(r.item)} <span class="need">${h(r.hasQty ? L.fmtQty(r.qty, r.unit) : "")}</span><small>${h(r.days.join(", "))}</small></span><span class="sq muted">saved</span>${canTick() ? `<button class="linkbtn" data-action="need" data-key="${h(r.key)}">Need it</button>` : ""}</li>`).join("") + `</ul></section>`;
+  }
+  const left = total - got;
+  const pct = total ? Math.round((got / total) * 100) : 0;
+  const st = state.settings.store;
+  const tot = weekTotal(st), b = state.settings.budget;
+  return `<div class="page-head"><div><h1>Shopping list</h1>
+      <p class="sub">Week of ${h(L.weekLabel(p.start))} · ${left} of ${total} items left · for ${h(householdText())} plus lunches</p>
+      <div class="progress" aria-hidden="true"><div style="width:${pct}%"></div></div></div>
+      <div class="actions"><button class="btn" data-action="copylist">${ICON.copy}Copy list</button></div></div>
+    <div class="budget${tot.total > b ? " over" : ""}">
+      <div class="budget-top"><div><span class="budget-big">${h(L.kr(tot.total))}</span> <span class="muted">estimated at</span>
+        <span class="seg" role="group" aria-label="Store">${Object.keys(STORES).map(k => `<button data-action="store" data-store="${k}" aria-pressed="${k === st}">${h(STORES[k])}</button>`).join("")}</span></div>
+        <div class="muted">${tot.total > b ? `<b class="warn">${h(L.kr(tot.total - b))} over</b>` : `${h(L.kr(b - tot.total))} under`} your ${h(L.kr(b))} budget</div></div>
+      <p class="small" style="margin-top:8px">Cheapest store-brand packs, prices checked ${h(window.PRICES_CHECKED)}${st === "ica" ? ". ICA prices marked ≈ are estimated from Willys" : ""}. Weekly offers can change the total.</p>
+    </div>
+    ${missing ? `<p class="notice">Still loading some recipes, so the list may be incomplete.</p>` : ""}
+    <p class="small" style="margin:-8px 0 16px">${state.static ? "Ticks are saved on this phone." : "Ticks are shared, so you can split the shop between you."} Tap "Have it" for things already in the cupboard.</p>
+    <div class="shop-grid">${secs}</div>`;
+}
+function copyListText() {
+  const { agg } = shopData();
+  const lines = ["Shopping list, week of " + L.weekLabel(state.plan.start) + " · ≈ " + L.kr(weekTotal(state.settings.store).total) + " at " + STORES[state.settings.store], ""];
+  L.SECTIONS.forEach(sec => {
+    const rows = agg[sec].filter(r => !state.shop[r.key]);
+    if (!rows.length) return;
+    lines.push(sec.toUpperCase());
+    rows.forEach(r => { const c = L.shopRowCost(r, state.settings.store); lines.push("- " + r.item + (r.hasQty ? " (" + L.fmtQty(r.qty, r.unit) + ")" : "") + (c ? " ≈ " + L.kr(c.cost) : "")); });
+    lines.push("");
+  });
+  const ex = state.extras.filter(e => !e.got);
+  if (ex.length) { lines.push("EXTRA"); ex.forEach(e => lines.push("- " + e.text)); }
+  return lines.join("\n").trim();
+}
+
+function viewSaved() {
+  const prefs = Object.entries(state.prefs);
+  const favs = prefs.filter(([, v]) => v.verdict === "fav");
+  const nos = prefs.filter(([, v]) => v.verdict === "no");
+  const curWeek = state.plan && state.plan.weekId;
+  return `<div class="page-head"><div><h1>Saved</h1><p class="sub">Favourites, dinners to skip, and past weeks you can reuse.</p></div></div>
+  <div class="saved-grid">
+    <div style="display:grid;gap:18px">
+      <section class="card"><h2>Favourites</h2>
+        ${favs.length ? `<ul class="list">${favs.map(([k, v]) => `<li><a href="#recipe-${h(v.recipeId)}">${h(v.name)}</a>${state.canWrite ? `<button class="linkbtn" data-action="unpref" data-key="${h(k)}">Remove</button>` : ""}</li>`).join("")}</ul>`
+          : `<p class="small">Tap the heart on a dinner to save it here. Claude may bring favourites back now and then.</p>`}
+      </section>
+      <section class="card"><h2>Not again</h2>
+        ${nos.length ? `<ul class="list">${nos.map(([k, v]) => `<li><span>${h(v.name)}</span>${state.canWrite ? `<button class="linkbtn" data-action="unpref" data-key="${h(k)}">Allow again</button>` : ""}</li>`).join("")}</ul>`
+          : `<p class="small">Dinners you mark "Not again" won't be suggested.</p>`}
+      </section>
+    </div>
+    <section class="card"><h2>Past weeks</h2>
+      ${state.weeks.length ? `<ul class="list">${state.weeks.map(w => `<li><div><b>Week of ${h(L.weekLabel(w.start))}</b> ${w.weekId === curWeek ? '<span class="pill">Current</span>' : ""}
+          <div class="week-names">${h((w.names || []).filter(Boolean).join(" · "))}</div></div>
+          ${state.canWrite && w.weekId !== curWeek ? `<button class="btn" data-action="reuse" data-week="${h(w.id)}">Use again</button>` : ""}</li>`).join("")}</ul>`
+        : `<p class="small">Each week you plan is kept here.</p>`}
+    </section>
+  </div>`;
+}
+
+let renderQueued = false;
+function render() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => { renderQueued = false; doRender(); });
+}
+function doRender() {
+  const rt = route();
+  document.querySelectorAll("nav a").forEach(a => {
+    const on = a.dataset.nav === rt.view || (rt.view === "recipe" && a.dataset.nav === "week");
+    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  const ae = document.activeElement;
+  const focusId = ae && ae.id && document.getElementById("main").contains(ae) ? ae.id : null;
+  const sel = focusId && typeof ae.selectionStart === "number" ? [ae.selectionStart, ae.selectionEnd] : null;
+  let html;
+  if (rt.view === "recipe") html = viewRecipe(rt.id);
+  else if (rt.view === "shopping") html = viewShopping();
+  else if (rt.view === "saved") html = viewSaved();
+  else html = viewWeek();
+  document.getElementById("main").innerHTML = html;
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) { el.focus(); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
+  }
+}
+
+// ---------- events ----------
+document.addEventListener("input", e => {
+  if (e.target.id === "wishes") state.wishes = e.target.value;
+  if (e.target.id === "extra-input") state.extraText = e.target.value;
+});
+document.addEventListener("submit", e => {
+  if (e.target.dataset.form === "extra") { e.preventDefault(); addExtra(); }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.action === "got") setShop(t.dataset.key, t.checked ? "got" : null);
+  if (t.dataset.action === "xgot" && state.canWrite) {
+    const id = t.dataset.id;
+    state.db.doc("extras/" + id).update({ got: t.checked }).catch(failWrite);
+  }
+});
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-action]");
+  if (!b || b.tagName === "INPUT") return;
+  const a = b.dataset.action;
+  if (a === "panel") { state.panelOpen = !state.panelOpen; render(); if (state.panelOpen) setTimeout(() => { const w = document.getElementById("wishes"); if (w) w.focus(); }, 30); }
+  else if (a === "plan") planWithClaude();
+  else if (a === "shuffle") shuffleWeek();
+  else if (a === "starter") { if (state.canWrite) { state.busy = "saving"; render(); try { await savePlan(window.STARTER_WEEK.slice()); } catch (err) { failWrite(err); } state.busy = null; render(); } }
+  else if (a === "cancel") { if (state.abort) state.abort.abort(); }
+  else if (a === "swap") swapDinner(Number(b.dataset.i));
+  else if (a === "fav") togglePref(getRecipe(b.dataset.id), "fav");
+  else if (a === "nope") togglePref(getRecipe(b.dataset.id), "no");
+  else if (a === "unpref") { if (state.canWrite) state.db.doc("prefs/" + b.dataset.key).delete().catch(failWrite); }
+  else if (a === "have") setShop(b.dataset.key, "have");
+  else if (a === "need") setShop(b.dataset.key, null);
+  else if (a === "xdel") { if (state.canWrite) state.db.doc("extras/" + b.dataset.id).delete().catch(failWrite); }
+  else if (a === "house") { state.houseOpen = !state.houseOpen; render(); }
+  else if (a === "hh") setHousehold(b.dataset.f, Number(b.dataset.d));
+  else if (a === "store") setStore(b.dataset.store);
+  else if (a === "reuse") {
+    const w = state.weeks.find(x => x.id === b.dataset.week);
+    if (w && Array.isArray(w.days) && state.canWrite) {
+      try { w.days.forEach(loadRecipe); await savePlan(w.days.slice(), false, w.names); toast("That week is back on the plan."); location.hash = "#week"; }
+      catch (err) { failWrite(err); }
+    }
+  }
+  else if (a === "copylist") {
+    try { await navigator.clipboard.writeText(copyListText()); toast("Shopping list copied. Paste it into a message or note."); }
+    catch (err) { toast("Couldn't copy here. Use Share at the top of the page to send the planner instead."); }
+  }
+  else if (a === "copylink") {
+    const base = state.static ? location.origin + location.pathname : APP_URL;
+    try { await navigator.clipboard.writeText(base + "#recipe-" + b.dataset.id); toast("Link to this dinner copied."); }
+    catch (err) { toast("Couldn't copy here."); }
+  }
+});
+
+start();
+</script>
+</body>
+</html>
